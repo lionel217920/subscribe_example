@@ -4,6 +4,11 @@ import java.io.Closeable;
 
 import static common.Util.swallowErrorClose;
 
+/**
+ * 工作线程（数据生产者，数据消费者，数据消费者Commit）
+ *
+ * @param <T>
+ */
 public class WorkThread<T extends Runnable & Closeable> {
     private final T r;
     private final Thread worker;

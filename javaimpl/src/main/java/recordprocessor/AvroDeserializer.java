@@ -8,12 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Avro序列化
+ * Avro反序列化
  */
 public class AvroDeserializer {
 
     private static final Logger log = LoggerFactory.getLogger(AvroDeserializer.class);
 
+    /**
+     * Avro反序列化的API
+     */
     private final SpecificDatumReader<Record> reader = new SpecificDatumReader<Record>(com.alibaba.dts.formats.avro.Record.class);
 
     public AvroDeserializer() {
@@ -21,10 +24,10 @@ public class AvroDeserializer {
     }
 
     /**
-     * 反序列化
+     * Avro反序列化，将kafka消息反序列化成Record
      *
-     * @param data 原始数据
-     * @return
+     * @param data kafka消息二进制数据
+     * @return Record
      */
     public com.alibaba.dts.formats.avro.Record deserialize(byte[] data) {
 

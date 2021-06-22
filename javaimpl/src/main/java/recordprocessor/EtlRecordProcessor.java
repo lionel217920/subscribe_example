@@ -2,6 +2,7 @@ package recordprocessor;
 
 
 import com.alibaba.dts.formats.avro.Record;
+import com.alibaba.fastjson.JSON;
 import common.*;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
@@ -25,7 +26,7 @@ import static common.Util.sleepMS;
  *
  * demo示例说明了如何解析avro记录，即从二进制反序列化，将展示怎么从反序列化记录中打印column记录
  *
- * 数据消费者
+ * 数据消费者，数据处理者
  */
 public class EtlRecordProcessor implements  Runnable, Closeable {
     private static final Logger log = LoggerFactory.getLogger(EtlRecordProcessor.class);
@@ -39,9 +40,17 @@ public class EtlRecordProcessor implements  Runnable, Closeable {
      */
     private WorkThread commitThread;
 
-
+    /**
+     * 数据消费者入队（kafka消息进入数据消费者队列）
+     *
+     * @param timeOut 等待时间
+     * @param timeUnit 时间单位
+     * @param record kafka消费记录
+     * @return
+     */
     public boolean offer(long timeOut, TimeUnit timeUnit, ConsumerRecord record) {
         try {
+            log.info("【Record Processor】offer record is {}", JSON.toJSONString(record));
             return toProcessRecord.offer(record, timeOut, timeUnit);
         } catch (Exception e) {
             log.error("EtlRecordProcessor: offer record failed, record[" + record + "], cause " + e.getMessage(), e);
@@ -117,6 +126,8 @@ public class EtlRecordProcessor implements  Runnable, Closeable {
                 record = fastDeserializer.deserialize(consumerRecord.value());
                 log.debug("EtlRecordProcessor: meet [{}] record type", record.getOperation());
                 for (RecordListener recordListener : recordListeners.values()) {
+
+                    // 数据消费监听，处理数据
                     recordListener.consume(new UserRecord(new TopicPartition(consumerRecord.topic(), consumerRecord.partition()), consumerRecord.offset(), record, new UserCommitCallBack() {
                         @Override
                         public void commit(TopicPartition tp, Record commitRecord, long offset, String metadata) {
@@ -146,8 +157,8 @@ public class EtlRecordProcessor implements  Runnable, Closeable {
     /**
      * 注册记录监听
      *
-     * @param name
-     * @param recordListener
+     * @param name 监听器名称
+     * @param recordListener 数据处理监听
      */
     public void registerRecordListener(String name, RecordListener recordListener) {
         require(null != name && null != recordListener, "null value not accepted");

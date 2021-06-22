@@ -39,7 +39,9 @@ public class RecordGenerator implements Runnable, Closeable {
     private final TopicPartition topicPartition;
     private final String groupID;
     private final ConsumerWrapFactory consumerWrapFactory;
+    // 初始化点位
     private final Checkpoint initialCheckpoint;
+    // 提交的点位
     private volatile Checkpoint toCommitCheckpoint = null;
     private final MetaStoreCenter metaStoreCenter = new MetaStoreCenter();
     private final AtomicBoolean useCheckpointConfig;
@@ -83,6 +85,7 @@ public class RecordGenerator implements Runnable, Closeable {
         String message = "first start";
         ConsumerWrap kafkaConsumerWrap = null;
         while (!existed) {
+            // 从上下文中获取数据消费者，也就是数据处理者processor
             EtlRecordProcessor recordProcessor = context.getRecordProcessor();
             try {
                 kafkaConsumerWrap = getConsumerWrap(message);
@@ -91,6 +94,7 @@ public class RecordGenerator implements Runnable, Closeable {
                     mayCommitCheckpoint();
                     ConsumerRecords<byte[], byte[]> records = kafkaConsumerWrap.poll();
                     for (ConsumerRecord<byte[], byte[]> record : records) {
+                        log.info("【Record Generator】receive kafka record is {}", record);
                         int offerTryCount = 0;
                         if (record.value() == null || record.value().length <= 48) {
                             // dStore may generate special mock record to push up consumer offset for next fetchRequest if all data is filtered
@@ -98,6 +102,7 @@ public class RecordGenerator implements Runnable, Closeable {
                         } else {
                             log.info("RecordGenerator: receive record, offset [" + record.offset() + "], value size [" + (record.value() == null ? 0 : record.value().length) + "]" );
                         }
+                        // 数据消费者入队
                         while (!recordProcessor.offer(1000, TimeUnit.MILLISECONDS, record) && !existed) {
                             if (++offerTryCount % 10 == 0) {
                                 log.info("RecordGenerator: offer record has failed for a period (10s) [ " + record + "]");

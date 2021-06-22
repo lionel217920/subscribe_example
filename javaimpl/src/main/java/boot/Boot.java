@@ -169,7 +169,7 @@ public class Boot {
     /**
      * 获取记录处理者【线程】
      *
-     * @param context 上下人
+     * @param context 上下文
      * @param properties 配置文件
      * @param recordGenerator 数据生产者
      * @return
