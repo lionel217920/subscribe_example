@@ -7,15 +7,25 @@ import org.apache.avro.specific.SpecificDatumReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+/**
+ * Avro序列化
+ */
 public class AvroDeserializer {
+
     private static final Logger log = LoggerFactory.getLogger(AvroDeserializer.class);
 
     private final SpecificDatumReader<Record> reader = new SpecificDatumReader<Record>(com.alibaba.dts.formats.avro.Record.class);
 
     public AvroDeserializer() {
+
     }
 
+    /**
+     * 反序列化
+     *
+     * @param data 原始数据
+     * @return
+     */
     public com.alibaba.dts.formats.avro.Record deserialize(byte[] data) {
 
         Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);

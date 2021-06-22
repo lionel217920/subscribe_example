@@ -8,6 +8,12 @@ public class WorkThread<T extends Runnable & Closeable> {
     private final T r;
     private final Thread worker;
 
+    public WorkThread(T r, String threadName) {
+        this.r = r;
+        worker = new Thread(r);
+        this.worker.setName(threadName);
+    }
+
     public WorkThread(T r) {
         this.r = r;
         worker = new Thread(r);

@@ -1,6 +1,9 @@
 package recordgenerator;
 
-import metastore.KafkaMetaStore;
+import common.Checkpoint;
+import common.Context;
+import metastore.LocalFileMetaStore;
+import metastore.MetaStoreCenter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -8,20 +11,24 @@ import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recordprocessor.EtlRecordProcessor;
-import metastore.LocalFileMetaStore;
-import metastore.MetaStoreCenter;
-import common.Checkpoint;
-import common.Context;
 
 import java.io.Closeable;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static recordgenerator.Names.*;
 import static common.Util.sleepMS;
 import static common.Util.swallowErrorClose;
+import static recordgenerator.Names.GROUP_NAME;
+import static recordgenerator.Names.KAFKA_TOPIC;
+import static recordgenerator.Names.SUBSCRIBE_MODE_NAME;
+import static recordgenerator.Names.TRY_BACK_TIME_MS;
+import static recordgenerator.Names.TRY_TIME;
+import static recordgenerator.Names.USE_CONFIG_CHECKPOINT_NAME;
 
+/**
+ * 记录生产者，也就是kafka里的consumer
+ */
 public class RecordGenerator implements Runnable, Closeable {
     private static final Logger log = LoggerFactory.getLogger(RecordGenerator.class);
     private static final String LOCAL_FILE_STORE_NAME = "localCheckpointStore";
@@ -40,6 +47,14 @@ public class RecordGenerator implements Runnable, Closeable {
     private final long tryBackTimeMS;
     private volatile boolean existed;
 
+    /**
+     * 构造方法
+     *
+     * @param properties 配置文件
+     * @param context 上下文
+     * @param initialCheckpoint 初始消费点位
+     * @param consumerWrapFactory 消费者包装器，kafka里面的消费者
+     */
     public RecordGenerator(Properties properties, Context context, Checkpoint initialCheckpoint, ConsumerWrapFactory consumerWrapFactory) {
         this.properties = properties;
         this.tryTime = Integer.valueOf(properties.getProperty(TRY_TIME, "150"));
@@ -192,6 +207,13 @@ public class RecordGenerator implements Runnable, Closeable {
         SUBSCRIBE,
         UNKNOWN;
     }
+
+    /**
+     * 构建消费订阅模式
+     *
+     * @param value 配置文件中的值
+     * @return
+     */
     private ConsumerSubscribeMode parseConsumerSubscribeMode(String value) {
         if (StringUtils.equalsIgnoreCase("assign", value)) {
             return ConsumerSubscribeMode.ASSIGN;

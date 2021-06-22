@@ -3,6 +3,9 @@ package common;
 import com.alibaba.dts.formats.avro.Record;
 import org.apache.kafka.common.TopicPartition;
 
+/**
+ * 从DTS获取到的变更数据
+ */
 public class UserRecord {
     private final TopicPartition topicPartition;
     private final long offset;

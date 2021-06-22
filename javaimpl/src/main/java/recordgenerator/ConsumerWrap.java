@@ -18,6 +18,10 @@ import java.util.function.Supplier;
 import static recordgenerator.Names.*;
 import static common.Util.mergeSourceKafkaProperties;
 
+/**
+ * 消费者包装器，抽象类
+ * 内部有具体实现类
+ */
 public abstract class ConsumerWrap implements Closeable {
     private static final Logger log = LoggerFactory.getLogger(ConsumerWrap.class);
 
@@ -36,15 +40,29 @@ public abstract class ConsumerWrap implements Closeable {
 
     public abstract KafkaConsumer getRawConsumer();
 
+    /**
+     * kafka消费者
+     */
     public static class DefaultConsumerWrap extends ConsumerWrap {
         private AtomicBoolean firstStart = new AtomicBoolean(true);
+
+        /**
+         * kafka消费者
+         */
         private KafkaConsumer<byte[], byte[]> consumer;
         private final long poolTimeOut;
 
+        /**
+         * 构造方法，创建kafka消费者
+         *
+         * @param properties DTS配置
+         */
         public DefaultConsumerWrap(Properties properties) {
+            // 构建Kafka配置属性
             Properties consumerConfig = new Properties();
             mergeSourceKafkaProperties(properties, consumerConfig);
             checkConfig(consumerConfig);
+            // 创建消费者
             consumer = new KafkaConsumer<byte[], byte[]>(consumerConfig);
             poolTimeOut = Long.valueOf(properties.getProperty(POLL_TIME_OUT, "500"));
         }
@@ -99,6 +117,11 @@ public abstract class ConsumerWrap implements Closeable {
             });
         }
 
+        /**
+         * 拉取kafka中的数据
+         *
+         * @return 返回的是Kafka中的消费记录，即ConsumerRecord
+         */
         public ConsumerRecords<byte[], byte[]> poll() {
             return consumer.poll(poolTimeOut);
         }
@@ -114,6 +137,11 @@ public abstract class ConsumerWrap implements Closeable {
             }
         }
 
+        /**
+         * 校验Kafka必要配置，Demo中并没有写，忽略
+         *
+         * @param properties
+         */
         private void checkConfig(Properties properties) {
 
         }

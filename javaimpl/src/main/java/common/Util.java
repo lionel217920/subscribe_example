@@ -12,8 +12,12 @@ import java.util.Properties;
 
 import static recordgenerator.Names.*;
 
+/**
+ * DTS中的一些工具类
+ */
 public class Util {
-    public static  void swallowErrorClose(Closeable target) {
+
+    public static void swallowErrorClose(Closeable target) {
         try {
             if (null != target) {
                 target.close();
@@ -22,6 +26,11 @@ public class Util {
         }
     }
 
+    /**
+     * 线程睡眠
+     *
+     * @param value 时间
+     */
     public static void sleepMS(long value) {
         try {
             Thread.sleep(value);
@@ -29,6 +38,12 @@ public class Util {
         }
     }
 
+    /**
+     * 根据DTS的配置构建Kafka的配置
+     *
+     * @param originProperties 原始DTS配置
+     * @param mergeToProperties Kafka配置属性
+     */
     public static void mergeSourceKafkaProperties(Properties originProperties, Properties mergeToProperties) {
         originProperties.forEach((k, v) ->{
             String key = (String)k;
@@ -53,6 +68,12 @@ public class Util {
 
     }
 
+    /**
+     * 校验参数
+     *
+     * @param predict 是否错误
+     * @param errMessage 错误信息
+     */
     public static void require(boolean predict, String errMessage) {
         if (!predict) {
             throw new RuntimeException(errMessage);

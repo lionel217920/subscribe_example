@@ -1,10 +1,15 @@
 package common;
 
-import com.alibaba.dts.formats.avro.Record;
+/**
+ * 数据消费监听接口
+ */
+public interface RecordListener {
 
-public  interface RecordListener {
-
-
-    public void consume(UserRecord record);
+    /**
+     * 数据消费监听接口
+     *
+     * @param record
+     */
+    void consume(UserRecord record);
 
 }

@@ -22,12 +22,24 @@ import static common.Util.sleepMS;
 /**
  * This demo show how to resolve avro record deserialize from bytes
  * We will show how to print a column from deserialize record
+ *
+ * demo示例说明了如何解析avro记录，即从二进制反序列化，将展示怎么从反序列化记录中打印column记录
+ *
+ * 数据消费者
  */
 public class EtlRecordProcessor implements  Runnable, Closeable {
     private static final Logger log = LoggerFactory.getLogger(EtlRecordProcessor.class);
+
     private final OffsetCommitCallBack offsetCommitCallBack;
+
     private volatile Checkpoint commitCheckpoint;
+
+    /**
+     * 提交点位的线程
+     */
     private WorkThread commitThread;
+
+
     public boolean offer(long timeOut, TimeUnit timeUnit, ConsumerRecord record) {
         try {
             return toProcessRecord.offer(record, timeOut, timeUnit);
@@ -37,12 +49,37 @@ public class EtlRecordProcessor implements  Runnable, Closeable {
         }
     }
 
+    /**
+     * 处理数据队列，ConsumerRecord是kafka中的消费记录
+     */
     private final LinkedBlockingQueue<ConsumerRecord> toProcessRecord;
+
+    /**
+     * Avro序列化
+     */
     private final AvroDeserializer fastDeserializer;
+
+    /**
+     * 启动类中定义的上下文
+     */
     private final Context context;
+
+    /**
+     * 记录监听，真正处理数据的地方
+     */
     private final Map<String, RecordListener> recordListeners = new HashMap<>();
 
+    /**
+     * 线程是否退出标识
+     */
     private volatile boolean existed = false;
+
+    /**
+     * 构造方法
+     *
+     * @param offsetCommitCallBack
+     * @param context
+     */
     public EtlRecordProcessor(OffsetCommitCallBack offsetCommitCallBack, Context context) {
         this.offsetCommitCallBack = offsetCommitCallBack;
         this.toProcessRecord = new LinkedBlockingQueue<>(512);
@@ -106,6 +143,12 @@ public class EtlRecordProcessor implements  Runnable, Closeable {
         }
     }
 
+    /**
+     * 注册记录监听
+     *
+     * @param name
+     * @param recordListener
+     */
     public void registerRecordListener(String name, RecordListener recordListener) {
         require(null != name && null != recordListener, "null value not accepted");
         recordListeners.put(name, recordListener);
@@ -116,6 +159,11 @@ public class EtlRecordProcessor implements  Runnable, Closeable {
         commitThread.stop();
     }
 
+    /**
+     * 获取提交点位线程
+     *
+     * @return Thread
+     */
     private WorkThread getCommitThread() {
         WorkThread workThread = new WorkThread(new Runnable() {
             @Override
@@ -125,7 +173,7 @@ public class EtlRecordProcessor implements  Runnable, Closeable {
                     commit();
                 }
             }
-        });
+        }, "Record Processor Commit");
         return workThread;
     }
 
