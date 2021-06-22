@@ -1,5 +1,5 @@
-import common.RecordListener;
 import boot.MysqlRecordPrinter;
+import common.RecordListener;
 import common.UserRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,21 +9,37 @@ import java.util.Map;
 import java.util.Properties;
 
 import static boot.Boot.boot;
-import static recordgenerator.Names.*;
+import static recordgenerator.Names.GROUP_NAME;
+import static recordgenerator.Names.INITIAL_CHECKPOINT_NAME;
+import static recordgenerator.Names.KAFKA_BROKER_URL_NAME;
+import static recordgenerator.Names.KAFKA_TOPIC;
+import static recordgenerator.Names.PASSWORD_NAME;
+import static recordgenerator.Names.SID_NAME;
+import static recordgenerator.Names.SUBSCRIBE_MODE_NAME;
+import static recordgenerator.Names.USER_NAME;
+import static recordgenerator.Names.USE_CONFIG_CHECKPOINT_NAME;
 
 public class NotifyDemo {
 
     private static final Logger log = LoggerFactory.getLogger(NotifyDemo.class);
 
+    /**
+     * 创建消费者记录监听
+     *
+     * @return 返回监听数据监听map
+     */
     public static Map<String, RecordListener> buildRecordListener() {
         // user can impl their own listener
         RecordListener mysqlRecordPrintListener = new RecordListener() {
             @Override
             public void consume(UserRecord record) {
-                // consume record
+                // consume record，这里面就可以执行消费记录的方法了
                 // MysqlRecordPrinter show how to go through record fields and get general attributes
+                // MysqlRecordPrinter 获取mysql中数据的属性
                 String ret = MysqlRecordPrinter.recordToString(record.getRecord());
-        //        log.info(ret);
+                log.info("【Record Listener】 consume record is {}", ret);
+
+                // 提交消费点位
                 record.commit(String.valueOf(record.getRecord().getSourceTimestamp()));
             }
         };
