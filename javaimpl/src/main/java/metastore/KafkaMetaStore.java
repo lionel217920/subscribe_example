@@ -32,6 +32,7 @@ public class KafkaMetaStore implements MetaStore<Checkpoint> {
     public Future<Checkpoint> serializeTo(TopicPartition topicPartition, String group, Checkpoint value) {
         KafkaFutureImpl ret = new KafkaFutureImpl();
         if (null != kafkaConsumer) {
+            // Kafka那边的偏移量元数据，从CheckPoint中获取时间戳和偏移量
             OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(value.getOffset(), String.valueOf(value.getTimeStamp()));
             // Notice: commitAsync is only put commit offset request to sending queue, the future  result will be driven by KafkaConsumer.poll() function
             // So if you only call this method but not poll, you may not wait offset commit call back

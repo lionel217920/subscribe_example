@@ -30,22 +30,74 @@ import static recordgenerator.Names.USE_CONFIG_CHECKPOINT_NAME;
  * 记录生产者，也就是kafka里的consumer
  */
 public class RecordGenerator implements Runnable, Closeable {
+
     private static final Logger log = LoggerFactory.getLogger(RecordGenerator.class);
+
+    /**
+     * 本地消息消费位点，键值
+     */
     private static final String LOCAL_FILE_STORE_NAME = "localCheckpointStore";
+
+    /**
+     * kafka消费位点，键值
+     */
     private static final String KAFKA_STORE_NAME = "kafkaCheckpointStore";
+
+    /**
+     * DTS配置
+     */
     private final Properties properties;
+
+    /**
+     * 获取kafka失败，重置次数
+     */
     private final int tryTime;
+
+    /**
+     * 上下文
+     */
     private final Context context;
+
+    /**
+     * kafka消息分区
+     */
     private final TopicPartition topicPartition;
+
+    /**
+     * DTS配置
+     */
     private final String groupID;
+
+    /**
+     * kafka消费者包装器工厂
+     */
     private final ConsumerWrapFactory consumerWrapFactory;
-    // 初始化点位
+
+    /**
+     * 初始化消费位点
+     */
     private final Checkpoint initialCheckpoint;
-    // 提交的点位
+
+    /**
+     * 提交的消费位点
+     */
     private volatile Checkpoint toCommitCheckpoint = null;
+
+    /**
+     * 消息偏移量处理
+     */
     private final MetaStoreCenter metaStoreCenter = new MetaStoreCenter();
+
+    /**
+     * 是否使用指定的消费点位
+     */
     private final AtomicBoolean useCheckpointConfig;
+
+    /**
+     * kafka消费组分区模式
+     */
     private final ConsumerSubscribeMode subscribeMode;
+
     private final long tryBackTimeMS;
     private volatile boolean existed;
 
@@ -207,9 +259,21 @@ public class RecordGenerator implements Runnable, Closeable {
         existed = true;
     }
 
+    /**
+     * kafka消费者分区
+     */
     private static enum ConsumerSubscribeMode {
+
+        /**
+         * 手动
+         */
         ASSIGN,
+
+        /**
+         * 自动
+         */
         SUBSCRIBE,
+
         UNKNOWN;
     }
 

@@ -31,8 +31,14 @@ import static common.Util.sleepMS;
 public class EtlRecordProcessor implements  Runnable, Closeable {
     private static final Logger log = LoggerFactory.getLogger(EtlRecordProcessor.class);
 
+    /**
+     * 偏移量提交回调
+     */
     private final OffsetCommitCallBack offsetCommitCallBack;
 
+    /**
+     * 消费位点，这里设置成volatile
+     */
     private volatile Checkpoint commitCheckpoint;
 
     /**
@@ -86,8 +92,8 @@ public class EtlRecordProcessor implements  Runnable, Closeable {
     /**
      * 构造方法
      *
-     * @param offsetCommitCallBack
-     * @param context
+     * @param offsetCommitCallBack 偏移量回调
+     * @param context 上下文信息
      */
     public EtlRecordProcessor(OffsetCommitCallBack offsetCommitCallBack, Context context) {
         this.offsetCommitCallBack = offsetCommitCallBack;
@@ -165,7 +171,7 @@ public class EtlRecordProcessor implements  Runnable, Closeable {
         recordListeners.put(name, recordListener);
     }
 
-    public  void close() {
+    public void close() {
         this.existed = true;
         commitThread.stop();
     }
